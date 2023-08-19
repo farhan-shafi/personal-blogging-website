@@ -1,5 +1,6 @@
 import Form from "@/components/form";
 import SubHeader from "@/components/sub-header";
+import { getSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import React, { useState } from "react";
 
@@ -153,3 +154,21 @@ function SignUp() {
 }
 
 export default SignUp;
+
+export async function getServerSideProps({ req }) {
+  const session = await getSession({ req });
+  if (session) {
+    return {
+      redirect: {
+        destination: "/profile",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      session,
+    },
+  };
+}
