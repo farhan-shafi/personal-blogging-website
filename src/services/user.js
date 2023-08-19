@@ -16,7 +16,7 @@ export function getUserById(id) {
 
 export function getUserByEmail(email) {
   const data = getAllUsers();
-  return data.find((p) => p.email.toLowerCase() === email.toLowerCase());
+  return data.find((p) => p.email?.toLowerCase() === email?.toLowerCase());
 }
 
 export async function verifyUserPassword(hashedPassword, password) {
@@ -24,7 +24,7 @@ export async function verifyUserPassword(hashedPassword, password) {
   return isValid;
 }
 
-export async function saveUser(email, password) {
+export async function saveUser(email, password, firstName, lastName) {
   const found = getUserByEmail(email);
   if (found) {
     throw new Error("User already exist.");
@@ -32,9 +32,11 @@ export async function saveUser(email, password) {
   const data = getAllUsers();
   const hashedPassword = await hash(password, 12);
   data.push({
-    id: data.length + 1,
+    id: Math.floor(Math.random() * 100),
     email,
     password: hashedPassword,
+    firstName,
+    lastName,
   });
   fs.writeFileSync(filePath, JSON.stringify(data));
 }

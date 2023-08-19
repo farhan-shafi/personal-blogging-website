@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Form from "@/components/form";
 import SubHeader from "@/components/sub-header";
 import { Col, Row, message } from "antd";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 
 function Login() {
   const [loading, setLoading] = useState(false);
@@ -18,6 +18,7 @@ function Login() {
       });
 
       setLoading(false);
+      return data;
     } catch (err) {
       console.error(err);
       setLoading(false);
@@ -44,3 +45,21 @@ function Login() {
 }
 
 export default Login;
+
+export async function getServerSideProps({ req }) {
+  const session = await getSession({ req });
+  if (session) {
+    return {
+      redirect: {
+        destination: "/profile",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      session,
+    },
+  };
+}

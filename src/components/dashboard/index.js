@@ -1,48 +1,79 @@
 import SubHeader from "../sub-header";
 
-import React, { useState } from "react";
-import { Button, Form, Input } from "antd";
+import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-const layout = {
-  labelCol: {
-    span: 8,
-  },
-  wrapperCol: {
-    span: 16,
-  },
-};
-
-const validateMessages = {
-  required: "${label} is required!",
-  string: {
-    min: "${label} must be between ${min} to ${max} characters",
-    max: "${label} must be between ${min} to ${max} characters",
-  },
-};
+import BlogForm from "../blog-form";
+import { Spin } from "antd";
+import Blogs from "../blogs";
 
 function LoginDashBoard() {
   const [loading, setLoading] = useState(false);
   const [blog, setBlog] = useState({ title: "", body: "" });
+  const [editingBlog, setEditingBlog] = useState({ status: false, blogId: -1 });
+  const [allBlogs, setAllBlogs] = useState([]);
+  const [greeting, setGreeting] = useState("Good Morning Readers!");
+  const [allBlogsLoading, setAllBlogsLoading] = useState(false);
 
   const { data: session } = useSession();
-  console.log(session);
 
+  const getAllBlogs = async () => {
+    setAllBlogsLoading(true);
+    try {
+      const data = await (
+        await fetch(
+          `/api/blog?email=${session?.user?.email}&getBy=${
+            session ? "email" : "all"
+          }`,
+          {
+            method: "GET",
+          }
+        )
+      ).json();
+
+      setAllBlogs(data);
+      setAllBlogsLoading(false);
+    } catch (err) {
+      setAllBlogsLoading(false);
+
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    getAllBlogs();
+  }, [session]);
+  const setGreetingMessage = () => {
+    let currentTime = new Date();
+    let currentHour = currentTime.getHours();
+
+    if (currentHour < 12) {
+      setGreeting("Good morning");
+    } else if (currentHour < 18) {
+      setGreeting("Good afternoon");
+    } else if (currentHour < 22) {
+      setGreeting("Good evening");
+    } else {
+      setGreeting("Good night");
+    }
+  };
+  useEffect(() => {
+    setGreetingMessage();
+  }, []);
   const onSubmit = async () => {
     try {
+      if (!session || blog.title === "" || blog.body === "") {
+        return;
+      }
       setLoading(true);
 
-      const response = await fetch("/api/auth/blog", {
+      const response = await fetch("/api/blog", {
         method: "POST",
-        body: JSON.stringify(blog),
+        body: JSON.stringify({ ...blog, email: session?.user?.email }),
         headers: {
           "Content-Type": "application/json",
         },
       });
-      if (!response.ok && response.status === 409) {
-        alert("User Already Exist");
-      }
-      if (response.ok) {
-      }
+      location.reload();
 
       setLoading(false);
     } catch (err) {
@@ -50,62 +81,88 @@ function LoginDashBoard() {
       setLoading(false);
     }
   };
+
+  const onDelete = async (blogId) => {
+    try {
+      if (!session) {
+        return;
+      }
+
+      const response = await fetch(
+        `/api/blog?email=${session.user.email}&blogId=${blogId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const onEdit = (title, body, blogId) => {
+    setBlog({ title, body });
+    setEditingBlog({ status: true, blogId });
+  };
+  const onUpdate = async () => {
+    try {
+      if (!session) {
+        return;
+      }
+
+      const response = await fetch(`/api/blog`, {
+        method: "PUT",
+        body: JSON.stringify({
+          ...blog,
+          blogId: editingBlog.blogId,
+          email: session?.user?.email,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      location.reload();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const blogProps = {
+    blog,
+    setBlog,
+    loading,
+    onSubmit,
+    editingBlog,
+    onUpdate,
+  };
+  const hasBlogs = allBlogs.length > 0;
+  const pageTitle = session ? "My Blogs" : "All Blogs";
   return (
     <>
       <SubHeader>
-        <h2 className="pb-sub-header-title">Dashboard</h2>
+        {session && <h2 className="pb-sub-header-title">Dashboard</h2>}
+        {!session && <h2 className="pb-sub-header-title">{greeting}</h2>}
       </SubHeader>
-      <Form
-        {...layout}
-        name="nest-messages"
-        onFinish={() => console.log("hello")}
-        style={{
-          maxWidth: 600,
-        }}
-        validateMessages={validateMessages}
-      >
-        <Form.Item
-          name={["title"]}
-          rules={[
-            {
-              required: true,
-              min: 5,
-              max: 50,
-            },
-          ]}
-        >
-          <Input
-            value={blog.title}
-            onChange={(newValue) => setBlog({ ...blog, title: newValue })}
+      <div style={{ paddingLeft: "160px", paddingBottom: "50px" }}>
+        {session && <BlogForm {...blogProps} />}
+        <h1 className="pb-blog-title">{pageTitle}</h1>
+        {!hasBlogs && allBlogsLoading && (
+          <div style={{ textAlign: "center" }}>
+            <Spin />
+          </div>
+        )}
+        {!hasBlogs && !allBlogsLoading && session && (
+          <p>You don't have any published blogs</p>
+        )}
+        {hasBlogs && !allBlogsLoading && (
+          <Blogs
+            blogs={allBlogs}
+            isLogin={session}
+            onDelete={onDelete}
+            editingBlog={editingBlog}
+            setEditingBlog={setEditingBlog}
+            onEdit={onEdit}
           />
-        </Form.Item>
-        <Form.Item
-          name={["body"]}
-          rules={[
-            {
-              required: true,
-              min: 100,
-              max: 3000,
-            },
-          ]}
-        >
-          <Input.TextArea
-            value={blog.body}
-            onChange={(newValue) => setBlog({ ...blog, body: newValue })}
-          />
-        </Form.Item>
-
-        <Form.Item
-          wrapperCol={{
-            ...layout.wrapperCol,
-            offset: 8,
-          }}
-        >
-          <Button type="primary" loading={loading} htmlType="submit">
-            Submit
-          </Button>
-        </Form.Item>
-      </Form>
+        )}
+      </div>
     </>
   );
 }

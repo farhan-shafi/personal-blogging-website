@@ -6,6 +6,15 @@ export const authOptions = {
   session: {
     jwt: true,
   },
+  callbacks: {
+    session: async ({ session, token }) => {
+      if (session?.user) {
+        session.user.id = token.uid;
+      }
+      return session;
+    },
+  },
+
   providers: [
     CredentialsProvider({
       async authorize({ email, password }) {
@@ -17,8 +26,7 @@ export const authOptions = {
         if (!isValid) {
           throw new Error("Incorrect Password");
         }
-
-        return { email };
+        return user;
       },
     }),
   ],

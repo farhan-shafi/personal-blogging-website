@@ -1,1 +1,16 @@
-[{"id":1,"email":"farhanshafi39@gmail.com","password":"$2a$12$TdJOHhhfW2cbWNir/4V7WeeVSOA.jIbIShQp7mLWD/GQ.A7TK15wi"},{"id":2,"email":"a","password":"$2a$12$AE4q93cpjYN4JuRR8YJf0.5Rg2Wi/J3P7sVbygtkrVQPAVig5Dotm"},{"id":3,"email":"farhanshafi34@gmail.com","password":"$2a$12$JPTuTVklI0y2J7tDc/ivp.rIt4h3lsXB2aZ3R9M2EIFadCPC7dNiC"}]
+[
+     {
+          "id": 1,
+          "email": "farhanshafi34@gmail.com",
+          "password": "$2a$12$IwUIBolNIYJD/LSLz/hDqOESdoBdfnvWf/7hBwVQn6sYnjcIIesMW",
+          "firstName": "Farhan",
+          "lastName": "Shafi"
+     },
+     {
+          "id": 2,
+          "email": "roshanshafi34@gmail.com",
+          "password": "$2a$12$gQWzDNHIzkm/FiSLMepNdu3GEB.jqE9VcVaSF4yD50CzvH9JWRy8C",
+          "firstName": "Roshan",
+          "lastName": "Shafi"
+     }
+]

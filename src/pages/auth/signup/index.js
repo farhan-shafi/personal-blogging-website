@@ -153,19 +153,3 @@ function SignUp() {
 }
 
 export default SignUp;
-// export const getServerSideProps = withSession(async function ({ req, res }) {
-//   const { user } = req.session;
-//   console.log(req.session);
-//   // if (!user) {
-//   //   return {
-//   //     redirect: {
-//   //       destination: "/login",
-//   //       permanent: false,
-//   //     },
-//   //   };
-//   // }
-
-//   return {
-//     props: {},
-//   };
-// });
